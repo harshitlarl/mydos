@@ -1,0 +1,51 @@
+template: Hello, %s!
+defaultName: User
+
+# Environment setting
+environment: prod
+
+# Database settings for Google Cloud SQL MySQL
+database:
+  driverClass: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://google/mydos?socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlInstance=PROJECT_ID:REGION:INSTANCE_NAME&useSSL=false
+  user: ${MYSQL_USER}
+  password: ${MYSQL_PASSWORD}
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate.hbm2ddl.auto: validate
+    hibernate.show_sql: false
+    hibernate.connection.provider_class: org.hibernate.hikaricp.internal.HikariCPConnectionProvider
+    hibernate.hikari.minimumIdle: 5
+    hibernate.hikari.maximumPoolSize: 20
+    hibernate.hikari.idleTimeout: 30000
+    hibernate.hikari.poolName: HikariCP
+    hibernate.hikari.maxLifetime: 2000000
+    hibernate.hikari.connectionTimeout: 30000
+
+# MongoDB settings - using Google Cloud MongoDB Atlas
+mongodb:
+  uri: ${MONGODB_URI}
+  sslEnabled: true
+
+# Server configuration
+server:
+  type: default
+  applicationConnectors:
+    - type: http
+      port: ${PORT:-8080}
+  adminConnectors:
+    - type: http
+      port: ${ADMIN_PORT:-8081}
+
+# Logging settings
+logging:
+  level: INFO
+  loggers:
+    com.mydos: INFO
+    org.hibernate: WARN
+  appenders:
+    - type: console
+      threshold: INFO
+      timeZone: UTC
+      target: stdout

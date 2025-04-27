@@ -1,0 +1,40 @@
+template: Hello, %s!
+defaultName: Stranger
+
+# Database settings
+database:
+  driverClass: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5432/mydos
+  user: mydos_user
+  password: mydos_password
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate.hbm2ddl.auto: update
+
+# Server configuration
+server:
+  type: default
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+
+# Logging settings
+logging:
+  level: INFO
+  loggers:
+    com.mydos: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      target: stdout
+    - type: file
+      threshold: INFO
+      currentLogFilename: ./logs/mydos.log
+      archivedLogFilenamePattern: ./logs/mydos-%d.log.gz
+      archivedFileCount: 5
+      timeZone: UTC

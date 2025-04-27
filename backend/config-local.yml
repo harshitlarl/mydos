@@ -1,0 +1,56 @@
+template: Hello, %s!
+defaultName: Developer
+
+# Environment setting
+environment: local
+
+# Database settings for MySQL
+database:
+  driverClass: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://mysql:3306/mydos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+  user: mydos_user
+  password: mydos_password
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate.hbm2ddl.auto: update
+    hibernate.show_sql: true
+    hibernate.format_sql: true
+
+# MongoDB settings
+mongodb:
+  host: mongodb
+  port: 27017
+  database: mydos
+  user: mydos_user
+  password: mydos_password
+  authSource: admin
+  sslEnabled: false
+
+# Server configuration
+server:
+  type: default
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+
+# Logging settings
+logging:
+  level: INFO
+  loggers:
+    com.mydos: DEBUG
+    org.hibernate.SQL: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      target: stdout
+    - type: file
+      threshold: INFO
+      currentLogFilename: ./logs/mydos-local.log
+      archivedLogFilenamePattern: ./logs/mydos-local-%d.log.gz
+      archivedFileCount: 5
+      timeZone: UTC
