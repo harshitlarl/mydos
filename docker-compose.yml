@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # MySQL Database (replacing PostgreSQL)
+  mysql:
+    image: mysql:8.0
+    container_name: mydos-mysql
+    environment:
+      MYSQL_DATABASE: mydos
+      MYSQL_USER: mydos_user
+      MYSQL_PASSWORD: mydos_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "mydos_user", "-p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB for analytics
+  mongodb:
+    image: mongo:5.0
+    container_name: mydos-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mydos_user
+      MONGO_INITDB_ROOT_PASSWORD: mydos_password
+      MONGO_INITDB_DATABASE: mydos
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/mydos --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Service
+  backend:
+    build: ./backend
+    container_name: mydos-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - CONFIG_FILE=config-local.yml
+    volumes:
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+      - maven_repo:/root/.m2
+    restart: unless-stopped
+    command: ["sh", "-c", "cd /app && mvn clean install -DskipTests && java -jar target/mydos-backend-service-1.0-SNAPSHOT.jar server ${CONFIG_FILE}"]
+
+  # Frontend Service
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: mydos-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8080/api
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  mongodb_data:
+  maven_repo:
